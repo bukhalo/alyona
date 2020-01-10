@@ -2,6 +2,8 @@ import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as pluralize from 'pluralize';
 import { TelegrafService } from '../telegraf/telegraf.service';
+import { PushHookDto } from './dto/push-hook.dto';
+import { MergeRequestHookDto } from './dto/merge-request-hook.dto';
 
 @Injectable()
 export class GitLabService {
@@ -10,7 +12,23 @@ export class GitLabService {
     private readonly telegrafService: TelegrafService,
   ) {}
 
-  pushEvent(body: any) {
+  mergeRequest(body: MergeRequestHookDto) {
+    const message = [];
+    message.push(`🔥 <b>GitLab Event [${body.object_kind}]</b>\n\n`);
+    message.push(`Pull request opened by ${body.user.username}:\n`);
+    message.push(
+      `${body.object_attributes.source_branch} => ${body.object_attributes.target_branch}`,
+    );
+    message.push(
+      `\n\n🗳 <a href="${body.project.web_url}">${body.project.path_with_namespace}</a>\n`,
+    );
+    message.push(
+      `🐼 <a href="https://gitlab.moduldev.ru/${body.user.username}">${body.user.name}</a>`,
+    );
+    this.telegrafService.sendGitLabEventMessage(message.join(''));
+  }
+
+  pushEvent(body: PushHookDto) {
     const message = [];
     message.push(`🔥 <b>GitLab Event [${body.object_kind}]</b>\n\n`);
     message.push(
@@ -45,6 +63,9 @@ export class GitLabService {
     switch (object_kind) {
       case 'push':
         this.pushEvent(body);
+        break;
+      case 'merge_request':
+        this.mergeRequest(body);
         break;
     }
   }
