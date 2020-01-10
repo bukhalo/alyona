@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as pluralize from 'pluralize';
 import { TelegrafService } from '../telegraf/telegraf.service';
 
 @Injectable()
@@ -9,33 +10,17 @@ export class GitLabService {
     private readonly telegrafService: TelegrafService,
   ) {}
 
-  private declOfNum(number, titles) {
-    const cases = [2, 0, 1, 1, 1, 2];
-    return titles[
-      number % 100 > 4 && number % 100 < 20
-        ? 2
-        : cases[number % 10 < 5 ? number % 10 : 5]
-    ];
-  }
-
   pushEvent(body: any) {
     const message = [];
+    message.push(`🔥 <b>GitLab Event [${body.object_kind}]</b>\n\n`);
     message.push(
-      `🔥 <b>GitLab Event [${body.object_kind}]</b>\n\n`,
-    );
-    message.push(
-      `${
-        body.total_commits_count
-      } new ${this.declOfNum(body.total_commits_count, [
+      `${body.total_commits_count} new ${pluralize(
         'commit',
-        'commits',
-        'commits',
-      ])} pushed:\n\n`,
+        body.total_commits_count,
+      )} pushed:\n\n`,
     );
     body.commits.forEach(commit => {
-      message.push(
-        `<a href="${commit.url}">${commit.id}</a>\n`,
-      );
+      message.push(`<a href="${commit.url}">${commit.id}</a>\n`);
     });
     message.push(
       `\n🗳 <a href="${body.project.web_url}">${body.project.path_with_namespace}</a>\n`,
