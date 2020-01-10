@@ -1,6 +1,6 @@
 {
-  "name": "modulbank-marketing-bot",
-  "version": "0.0.1",
+  "name": "alyona",
+  "version": "0.1.0",
   "description": "",
   "author": "",
   "license": "MIT",
@@ -21,11 +21,13 @@
   },
   "dependencies": {
     "@nestjs/common": "^6.7.2",
+    "@nestjs/config": "0.0.9",
     "@nestjs/core": "^6.7.2",
     "@nestjs/platform-express": "^6.7.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
-    "rxjs": "^6.5.3"
+    "rxjs": "^6.5.3",
+    "telegraf": "^3.35.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^6.9.0",
