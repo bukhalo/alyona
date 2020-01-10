@@ -4,6 +4,7 @@ import * as pluralize from 'pluralize';
 import { TelegrafService } from '../telegraf/telegraf.service';
 import { PushHookDto } from './dto/push-hook.dto';
 import { MergeRequestHookDto } from './dto/merge-request-hook.dto';
+import { WebhookPayloadDto } from './dto/webhook-payload.dto';
 
 @Injectable()
 export class GitLabService {
@@ -15,7 +16,9 @@ export class GitLabService {
   mergeRequest(body: MergeRequestHookDto) {
     const message = [];
     message.push(`🔥 <b>GitLab Event [${body.object_kind}]</b>\n\n`);
-    message.push(`Pull request opened by ${body.user.username}:\n`);
+    message.push(
+      `Pull request <a href="${body.object_attributes.url}">${body.object_attributes.title}</a> opened:\n\n`,
+    );
     message.push(
       `${body.object_attributes.source_branch} => ${body.object_attributes.target_branch}`,
     );
@@ -25,6 +28,8 @@ export class GitLabService {
     message.push(
       `🐼 <a href="https://gitlab.moduldev.ru/${body.user.username}">${body.user.name}</a>`,
     );
+
+    /* Send message in chat */
     this.telegrafService.sendGitLabEventMessage(message.join(''));
   }
 
@@ -46,6 +51,8 @@ export class GitLabService {
     message.push(
       `🐼 <a href="https://gitlab.moduldev.ru/${body.user_username}">${body.user_name}</a>`,
     );
+
+    /* Send message in chat */
     this.telegrafService.sendGitLabEventMessage(message.join(''));
   }
 
@@ -55,17 +62,28 @@ export class GitLabService {
     }
   }
 
-  webhook(body: any, webhookToken: string) {
+  webhook(body: WebhookPayloadDto, webhookToken: string) {
     this.validateWebhookToken(webhookToken);
 
     const { object_kind } = body;
 
     switch (object_kind) {
       case 'push':
-        this.pushEvent(body);
+        const pushDto = body as PushHookDto;
+        /* Check commits exist in branch */
+        if (pushDto.commits.length > 0) {
+          this.pushEvent(pushDto);
+        }
         break;
       case 'merge_request':
-        this.mergeRequest(body);
+        const mergeDto = body as MergeRequestHookDto;
+        /* Check pull request is opened */
+        if (
+          mergeDto.object_attributes.action === 'open' &&
+          mergeDto.object_attributes.state === 'opened'
+        ) {
+          this.mergeRequest(mergeDto);
+        }
         break;
     }
   }
