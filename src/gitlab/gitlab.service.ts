@@ -1,7 +1,7 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TelegrafTelegramService, TelegramActionHandler } from 'nestjs-telegraf';
 import * as pluralize from 'pluralize';
-import { TelegrafService } from '../telegraf/telegraf.service';
 import { PushHookDto } from './dto/push-hook.dto';
 import { MergeRequestHookDto } from './dto/merge-request-hook.dto';
 import { WebhookPayloadDto } from './dto/webhook-payload.dto';
@@ -10,8 +10,13 @@ import { WebhookPayloadDto } from './dto/webhook-payload.dto';
 export class GitLabService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly telegrafService: TelegrafService,
+    private readonly telegrafTelegramService: TelegrafTelegramService,
   ) {}
+
+  @TelegramActionHandler({ onStart: true })
+  async start(ctx: any) {
+    await ctx.reply('Hello!')
+  }
 
   mergeRequest(body: MergeRequestHookDto) {
     const message = [];
@@ -30,7 +35,7 @@ export class GitLabService {
     );
 
     /* Send message in chat */
-    this.telegrafService.sendGitLabEventMessage(message.join(''));
+    this.sendGitLabEventMessage(message.join(''));
   }
 
   pushEvent(body: PushHookDto) {
@@ -53,11 +58,24 @@ export class GitLabService {
     );
 
     /* Send message in chat */
-    this.telegrafService.sendGitLabEventMessage(message.join(''));
+    this.sendGitLabEventMessage(message.join(''));
+  }
+
+  /* Send message wrapper */
+  sendGitLabEventMessage(message: string) {
+    this.telegrafTelegramService.sendMessage(
+      this.configService.get('gitLab.chatID'),
+      message,
+      {
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+        disable_notification: true,
+      },
+    );
   }
 
   validateWebhookToken(token: string) {
-    if (token !== this.configService.get('gitlab.webhookToken')) {
+    if (token !== this.configService.get('gitLab.webhookToken')) {
       throw new HttpException('Invalid webhook token', HttpStatus.FORBIDDEN);
     }
   }
