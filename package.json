@@ -22,10 +22,10 @@
     "docker:archive": "docker save alyona:$npm_package_version > docker/alyona-$npm_package_version.tar"
   },
   "dependencies": {
-    "@nestjs/common": "6.10.14",
+    "@nestjs/common": "6.11.11",
     "@nestjs/config": "0.4.0",
-    "@nestjs/core": "6.10.14",
-    "@nestjs/platform-express": "6.10.14",
+    "@nestjs/core": "6.11.11",
+    "@nestjs/platform-express": "6.11.11",
     "nestjs-telegraf": "1.1.0",
     "pluralize": "8.0.0",
     "reflect-metadata": "0.1.13",
