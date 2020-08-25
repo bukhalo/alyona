@@ -42,7 +42,7 @@
     "@types/node": "12.12.24",
     "@types/supertest": "2.0.9",
     "jest": "25.4.0",
-    "prettier": "2.0.5",
+    "prettier": "2.1.0",
     "supertest": "4.0.2",
     "ts-jest": "25.4.0",
     "ts-loader": "7.0.1",
